@@ -1,0 +1,4 @@
+session.cookie
+.venv/
+__pycache__/
+*_input.txt
