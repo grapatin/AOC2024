@@ -18,49 +18,6 @@ def compress_string(input_string: str) -> bytes:
     
     return compressed_data
 
-def calculate_quadrants(map_dict, max_x, max_y):
-    #find middle row and column
-
-    middle_col = max_x // 2
-    left_side = 0
-    right_side = 0
-    middle_count = 0
-
-    for y in range(max_y):
-        for x in range(max_x):
-            if (x, y) in map_dict:
-                if x < middle_col:
-                    left_side += 1
-                elif x > middle_col:
-                    right_side += 1
-                else:
-                    middle_count += 1
-
-    #assume summetrical left and right side
-    return middle_count
-
-# Define a debug flag
-DEBUG = False
-
-# Custom debug print function
-def debug_print(*args, **kwargs):
-    if DEBUG:
-        print(*args, **kwargs)
-
-
-example_input = """p=0,4 v=3,-3
-p=6,3 v=-1,-3
-p=10,3 v=-1,2
-p=2,0 v=2,-1
-p=0,0 v=1,3
-p=3,0 v=-2,-2
-p=7,6 v=-1,-3
-p=3,0 v=-1,-2
-p=9,3 v=2,3
-p=7,3 v=-1,2
-p=2,4 v=2,-3
-p=9,5 v=-3,-3"""
-example1_result = 12
 
 #creata a robot class to hold the position and velocity of each robot
 class Robot:
@@ -79,10 +36,6 @@ class Robot:
         return f"Position: {self.position}, Velocity: {self.velocity}"
     
 def pretty_print_file(list_of_robots, max_x, max_y, n=0):
-    # Pretty print robots in space and in each space print how many they are in that space
-    # Create a dict map of cord system with '.' as empty space and '123' as number of robots in that space
-    # Write the map to a file
-    filename="output.txt"
     map_dict = {}
     for robot in list_of_robots:
         if tuple(robot.position) in map_dict:
@@ -91,17 +44,12 @@ def pretty_print_file(list_of_robots, max_x, max_y, n=0):
             map_dict[tuple(robot.position)] = 1
 
     one_string = ""
-    with open(filename, "a") as file:
-        #file.write(f"Time: {n}\n")
-        for y in range(max_y):
-            for x in range(max_x):
-                if (x, y) in map_dict:
-                    #file.write(str(map_dict[(x, y)]))
-                    one_string += str(map_dict[(x, y)])
-                else:
-                    #file.write(".")
-                    one_string += "."
-            #file.write("\n")
+    for y in range(max_y):
+        for x in range(max_x):
+            if (x, y) in map_dict:
+                one_string += str(map_dict[(x, y)])
+            else:
+                one_string += "."
             one_string += "\n"
 
     return map_dict, one_string
@@ -119,7 +67,7 @@ def solve(input_string: str, max_x, max_y) -> int:
     m = 0
     max_moves = 10000
     #move the robots for max_moves times
-    map_dict, one_string = pretty_print_file(list_of_robots, max_x, max_y, n)
+    _, one_string = pretty_print_file(list_of_robots, max_x, max_y, n)
     size = len(compress_string(one_string))
     best_move = 0
     print(f"Time: {m}", n, size)
@@ -131,12 +79,11 @@ def solve(input_string: str, max_x, max_y) -> int:
         if n >= 197:
             m += 1
 
-
-        map_dict, one_string = pretty_print_file(list_of_robots, max_x, max_y, n)
+        _, one_string = pretty_print_file(list_of_robots, max_x, max_y, n)
         #compress one_string to check entropy in the string
         if len(compress_string(one_string)) < size:
             size = len(compress_string(one_string))
-            print(f"Time: {m}", n, "compressed size", size, "diff", calculate_quadrants(map_dict, max_x, max_y))    
+            print(f"Time: {m}", n, "compressed size", size, )    
             best_move = n
 
     return best_move
