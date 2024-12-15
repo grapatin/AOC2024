@@ -19,7 +19,7 @@ def compress_string(input_string: str) -> bytes:
     return compressed_data
 
 
-#creata a robot class to hold the position and velocity of each robot
+# Create a Robot class to hold the position and velocity of each robot
 class Robot:
     def __init__(self, position, velocity, max_x, max_y):
         self.position = position
@@ -28,7 +28,7 @@ class Robot:
         self.max_y = max_y
 
     def move(self):
-        #wrap around max sizes also
+        # Wrap around max sizes also.
         self.position[0] = (self.position[0] + self.velocity[0]) % self.max_x
         self.position[1] = (self.position[1] + self.velocity[1]) % self.max_y
         
@@ -50,15 +50,15 @@ def pretty_print_file(list_of_robots, max_x, max_y, n=0):
                 one_string += str(map_dict[(x, y)])
             else:
                 one_string += "."
-            one_string += "\n"
+        one_string += "\n"
 
     return map_dict, one_string
 
 def solve(input_string: str, max_x, max_y) -> int:
     list_of_robots = []
-    #parse the input
+    # Parse the input
     for line in input_string.split("\n"):
-        #parse the position and velocity
+        # Parse the position and velocity
         position = list(map(int, re.findall(r"-?\d+", line)[:2]))
         velocity = list(map(int, re.findall(r"-?\d+", line)[2:]))
         list_of_robots.append(Robot(position, velocity, max_x, max_y))
@@ -66,7 +66,7 @@ def solve(input_string: str, max_x, max_y) -> int:
     n = 0
     m = 0
     max_moves = 10000
-    #move the robots for max_moves times
+    # Move the robots for max_moves times
     _, one_string = pretty_print_file(list_of_robots, max_x, max_y, n)
     size = len(compress_string(one_string))
     best_move = 0
@@ -75,7 +75,7 @@ def solve(input_string: str, max_x, max_y) -> int:
         n += 1
         for robot in list_of_robots:
             robot.move()
-        #check if the robots are close to each other
+        # Check if the robots are close to each other
         if n >= 197:
             m += 1
 
