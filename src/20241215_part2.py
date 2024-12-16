@@ -178,7 +178,7 @@ def solve(input_string: str) -> int:
                 space_left = set()
                 spaces_occupied = set()
 
-                new_map_dict = copy.deepcopy(map_dict)
+                new_map_dict = map_dict.copy()
                 for box in existing_box_cords:
                     new_box_pos = (box[0] + directioncord[0], box[1] + directioncord[1])
                     new_map_dict[new_box_pos] = map_dict.get(box)
@@ -200,7 +200,6 @@ def solve(input_string: str) -> int:
             map_dict[robot_pos] = "."
             map_dict[new_pos] = "@"
             robot_pos = new_pos
-
 
     pretty_print_map(map_dict)
     result = 0
