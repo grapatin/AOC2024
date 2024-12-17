@@ -60,7 +60,6 @@ def solve(input_string: str) -> int:
     
     visited = dict()
     lowest_cost = 100000000
-    step_count = 0
     best_spot_set = set()
     while queue:
         position, turns, steps, cost, facing, visit_cords = queue.pop(0)
@@ -122,11 +121,7 @@ def solve(input_string: str) -> int:
             else:
                 print(dict_map[(x, y)], end="")
         print()
-
-
     return len(best_spot_set)  
-
-
 
 # Test the example
 result = solve(example_input)
