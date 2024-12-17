@@ -118,8 +118,10 @@ def solve(input_string: str) -> int:
                     registers_dict["C"] = numerator // denominator
                 ip += 2
 
-            if output_solved_so_far < len(output_list) and output_list[output_solved_so_far] == program[output_solved_so_far]:
+            if output_solved_so_far < len(output_list) and all(output_list[i] == program[i] for i in range(output_solved_so_far + 1)):
                 print("Found a match for octet number:", output_solved_so_far, "with start value of A:", oct(start_value))
+                print("Output:", output_list)
+                print("Program:", program)
                 result = k*(8**octet_number) + result
                 output_solved_so_far += 1
                 break
