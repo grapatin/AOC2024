@@ -10,11 +10,11 @@ def debug_print(*args, **kwargs):
     if DEBUG:
         print(*args, **kwargs)
 
-example_input = """Register A: 0
+example_input = """Register A: 729
 Register B: 0
-Register C: 9
+Register C: 0
 
-Program: 2,6"""
+Program: 0,1,5,4,3,0"""
 example1_result = '4,6,3,5,6,3,5,2,1,0'
 
 def solve(input_string: str) -> int:

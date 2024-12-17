@@ -40,99 +40,100 @@ def solve(input_string: str) -> int:
         name, value = register.split(": ")
         registers_dict[name.split(' ')[1]] = int(value)
 
-    program = program.split(": ")[1]
+    program_string = program.split(": ")[1]
     #Get each int in program and pass into a list
-    program = list(map(int, program.split(",")))
+    program = list(map(int, program_string.split(",")))
     len_input_program = len(program)
     best_result = 0
-    a = 0
-    base = 0
-    while True:
-        registers_dict["A"] = a
-        registers_dict["B"] = 0
-        registers_dict["C"] = 0
-        # Execute the program
-        ip = 0
-        output = ''
-        len_input_program = len(program)
-        new_output_counter = 0
 
-        while ip < len(program):
-            instruction = program[ip]
-            combo_operand = combo_check(program[ip + 1])
-            literal_operand = program[ip + 1]
-            if instruction == 0:
-                # adv division
-                numerator = registers_dict["A"]
-                denominator = 2 ** combo_operand
-                #result = numerator / denominator but truncated to int
-                registers_dict["A"] =  numerator // denominator
-            elif instruction == 1:
-                # bxl bitwise xor register B and literal operand
-                registers_dict["B"] ^= literal_operand 
-            elif instruction == 2:
-                #bst combo operand modulo 8 store in register B
-                registers_dict["B"] = combo_operand % 8
-            elif instruction == 3:
-                # jnx instructior
-                if registers_dict["A"] == 0:
-                    pass
-                else:
-                    ip = literal_operand
-                    continue
-                # leave ip to increase as normal
-            elif instruction == 4:
-                # bxc bitwise xor register B and register C
-                registers_dict["B"] = registers_dict["B"] ^ registers_dict["C"]
-            elif instruction == 5:
-                # out, combo operand modulo 8
-                output += str(combo_operand % 8) + ","
-                int_output = combo_operand % 8
-                #check if output matches to program
-                if int_output != program[new_output_counter]:
-                    #print("Output does not match program")
-                    break
-                else:
-                    new_output_counter += 1
-                    if new_output_counter > best_result:
-                        best_result = new_output_counter
-                        print("Best result so far:", best_result, "A:", a, "A % 8:", a % 8, "A // 32", a // 32, "int_output:", int_output, "new_output_counter:", new_output_counter)
-                        #print a as binary
-                        print("A in binary:", format(a, '032b'))
-                        print("A in octary format:", format(a, 'o'))
-                        octet_worker = a
-                        for i in range(0, new_output_counter):
-                            octet = octet_worker % 8
-                            octet_worker = octet_worker // 8
-                            print("Octet:", octet, "output", program[i])
-            elif instruction == 6:
-                # bdv 
-                numerator = registers_dict["A"]
-                denominator =  2 ** combo_operand
-                #result = numerator / denominator but truncated to int
-                registers_dict["B"] = numerator // denominator
-            elif instruction == 7:
-                # cdv 
-                numerator = registers_dict["A"]
-                denominator =  2 ** combo_operand
-                #result = numerator / denominator but truncated to int
-                registers_dict["C"] = numerator // denominator
-            ip += 2
+    # We should try to solve this by getting same output as the program
+    # each octet in A creates one output
+    # lets try to solve this backwards by on the highest octet in A that creates the last output = program[-1]
+    # then we can try to solve the next octet in A that creates the second last output = program[-2]
+    # and so on until we have solved all outputs
+    # the number of octets in A will be same as number of steps in the program
+    # we can try to solve this by brute force
 
-        if new_output_counter == len_input_program:    
-            return a
-        a += 1
-    
+    result = 0
+    output_solved_so_far = 0
+    for octet_number in range(len_input_program):
+        print("Octet number:", octet_number)
+        
+        for k in range(8):
+            start_value = k*(8**octet_number) + result
+            registers_dict["A"] = k*(8**octet_number) + result
+            #registers_dict["A"] = int("0o345300", 8)
+            #registers_dict["A"] = int("0o345000", 8)
+
+            registers_dict["B"] = 0
+            registers_dict["C"] = 0
+            # Execute the program
+            ip = 0
+            output = ''
+            output_list = []
+            len_input_program = len(program)
+
+            while ip < len(program):
+                instruction = program[ip]
+                combo_operand = combo_check(program[ip + 1])
+                literal_operand = program[ip + 1]
+                if instruction == 0:
+                    # adv division
+                    numerator = registers_dict["A"]
+                    denominator = 2 ** combo_operand
+                    #result = numerator / denominator but truncated to int
+                    registers_dict["A"] =  numerator // denominator
+                elif instruction == 1:
+                    # bxl bitwise xor register B and literal operand
+                    registers_dict["B"] ^= literal_operand 
+                elif instruction == 2:
+                    #bst combo operand modulo 8 store in register B
+                    registers_dict["B"] = combo_operand % 8
+                elif instruction == 3:
+                    # jnx instructior
+                    if registers_dict["A"] == 0:
+                        pass
+                    else:
+                        ip = literal_operand
+                        continue
+                    # leave ip to increase as normal
+                elif instruction == 4:
+                    # bxc bitwise xor register B and register C
+                    registers_dict["B"] = registers_dict["B"] ^ registers_dict["C"]
+                elif instruction == 5:
+                    # out, combo operand modulo 8
+                    output += str(combo_operand % 8) + ","
+                    output_list.append(combo_operand % 8)
+                elif instruction == 6:
+                    # bdv 
+                    numerator = registers_dict["A"]
+                    denominator =  2 ** combo_operand
+                    #result = numerator / denominator but truncated to int
+                    registers_dict["B"] = numerator // denominator
+                elif instruction == 7:
+                    # cdv 
+                    numerator = registers_dict["A"]
+                    denominator =  2 ** combo_operand
+                    #result = numerator / denominator but truncated to int
+                    registers_dict["C"] = numerator // denominator
+                ip += 2
+
+            if output_solved_so_far < len(output_list) and output_list[output_solved_so_far] == program[output_solved_so_far]:
+                print("Found a match for octet number:", output_solved_so_far, "with start value of A:", oct(start_value))
+                result = k*(8**octet_number) + result
+                output_solved_so_far += 1
+                break
+    return result
 
 # Test the example
 result = solve(example_input)
 if result == example1_result:
     print()
-    print("The example result matches the expected result.")
+    print("The example result matches the expected result.", oct(result), result)
     print()
 else:
     print()
-    print("The example result does not match the expected result. Got:", result, "Expected:", example1_result)
+    print("The example result does not match the expected result. Got:", oct(result), "Expected:", oct(example1_result))
     print()
 
 # Call the function and get the problem input
