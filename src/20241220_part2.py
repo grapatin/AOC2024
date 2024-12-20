@@ -26,7 +26,7 @@ example_input = """###############
 #.#.#.#.#.#.###
 #...#...#...###
 ###############"""
-example1_result = 5
+example1_result = 285
 
 def solve(input_string: str, limit) -> int:
     # Create a map dict with x, y as key and the value as the character
@@ -82,7 +82,7 @@ def solve(input_string: str, limit) -> int:
         steps = visited[pos]
         x, y = pos
         
-        for i in range(index + 1, len(visited_list)):
+        for i in range(index + limit, len(visited_list)):
             next_pos = visited_list[i]
             next_steps = visited[next_pos]
             next_x, next_y = next_pos
