@@ -25,10 +25,8 @@ class numeric_keypad:
     def __init__(self):
         keypad_layout = """789\n456\n123\n#0A"""
 
-        direction_pad = directional_keypad()
         self.dict_map_keypad = {}
         self.dict_map_reverse = {}
-        self.clear_text_path = {}
         x = 0
         y = 0
         for line in keypad_layout.split("\n"):
@@ -48,21 +46,17 @@ class numeric_keypad:
                 # find shortest path between 2 points with BFS
                 # '#' is a wall
                 queue = []
-                clear_text_path = ''
                 start_pos = self.dict_map_reverse[char1]
                 stop_pos = self.dict_map_reverse[char2]
                 visited = set()
                 visited.add(start_pos)
-                queue.append((start_pos, '', 'A', clear_text_path))
-                best_path = '##############################################################################################'
+                queue.append((start_pos, ''))
                 while queue:
-                    current_pos, current_path, key_pad_position, clear_text_path = queue.pop(0)
+                    current_pos, current_path = queue.pop(0)
                     x, y = current_pos
                     if current_pos == stop_pos:
-                        if len(current_path) < len(best_path):
-                            best_path = current_path
-                            self.shortest_paths_dict[char1 + char2] = best_path + 'A'
-                            self.clear_text_path[char1 + char2] = clear_text_path + 'A'
+                        self.shortest_paths_dict[char1 + char2] = current_path
+                        break
                     # Add all the neighbors
                     directions = [(1, 0, 'R'), (0, -1, 'U'), (0, 1, 'D'), (-1, 0, 'L')]
                     for dx, dy, direction in directions:
@@ -70,10 +64,10 @@ class numeric_keypad:
                         new_y = y + dy
                         new_pos = (new_x, new_y)
                         if new_pos not in visited and new_pos in self.dict_map_keypad:
-                            # get the cost to move in this direction use direction_pad
-                            path_to_add = direction_pad.second_level_direction[key_pad_position+direction]
                             visited.add(new_pos)
-                            queue.append((new_pos, current_path + path_to_add, direction, clear_text_path + direction))
+                            queue.append((new_pos, current_path + direction))
+
+                
 
         self.current_state = 'A'
         self.current_cord = self.dict_map_reverse['A']
@@ -107,6 +101,7 @@ class numeric_keypad:
                 output += self.dict_map_keypad[current_cord]
         return output
 
+    
 class directional_keypad:
     def __init__(self):
         keypad_layout = """#UA\nLDR"""
@@ -125,7 +120,6 @@ class directional_keypad:
             x = 0
         # create a list shortest part for directional keypad
         self.shortest_paths_dict_directional = {}
-        self.second_level_direction = {}
         chars = 'ALRUD'
         for char1 in chars:
             for char2 in chars:
@@ -141,7 +135,7 @@ class directional_keypad:
                     current_pos, current_path = queue.pop(0)
                     x, y = current_pos
                     if current_pos == stop_pos:
-                        self.shortest_paths_dict_directional[char1 + char2] = current_path + 'A'
+                        self.shortest_paths_dict_directional[char1 + char2] = current_path
                         break
                     # Add all the neighbors
                     directions = [(0, 1, 'D'), (1, 0, 'R'), (0, -1, 'U'), (-1, 0, 'L')]
@@ -153,43 +147,13 @@ class directional_keypad:
                             visited.add(new_pos)
                             queue.append((new_pos, current_path + direction))
 
-        # now calculate the shortets path for second level, i.e. using shortest_paths_dict_directional
-        # to calculate the shortest path between 2 points
-        chars = 'ALRUD'
-        for char1 in chars:
-            for char2 in chars:
-                queue = []
-                start_pos = self.dict_map_reverse[char1]
-                stop_pos = self.dict_map_reverse[char2]
-
-                # get first level direction
-                first_level_direction = self.shortest_paths_dict_directional[char1 + char2]
-                # now start from A and go through the first level direction
-                start_char = 'A'
-                path = ''
-                while (first_level_direction):
-                    # get first char in first_level_direction and remove it
-                    direction = first_level_direction[0]
-                    first_level_direction = first_level_direction[1:]
-                    path += self.shortest_paths_dict_directional[start_char + direction]
-                    start_char = direction
-                # Now find the path back to 'A'
-                second_part_of_path = self.shortest_paths_dict_directional[char2 + 'A']
-                while (second_part_of_path):
-                    # get first char in first_level_direction and remove it
-                    direction = second_part_of_path[0]
-                    second_part_of_path = second_part_of_path[1:]
-                    path += self.shortest_paths_dict_directional[start_char + direction]
-                    start_char = direction
-
-                self.second_level_direction[char1 + char2] = path
-
         self.current_state = 'A'
         self.current_cord = self.dict_map_reverse[self.current_state]
 
     def reset(self):
         self.current_state = 'A'
         self.current_cord = self.dict_map_reverse['A']
+
 
     def move(self, direction):
         where_to_go = self.current_state + direction
@@ -224,24 +188,8 @@ class directional_keypad:
                 output += self.dict_map_keypad[current_cord]
         return output
                       
-
-def simulate_all(sequence, keypad, direction_keypad):
-    output = ''
-
-    direction_keypad.reset()
-    keypad.reset()
-    temp = direction_keypad.simulate(sequence)
-    print("First simulation:", temp)
-    direction_keypad.reset()
-    temp = direction_keypad.simulate(temp)
-    print("Second simulation:", temp)
-    temp = keypad.simulate(temp)
-    print("Third simulation:", temp)
-    output = temp
-
-    return output
-
 def solve(input_string: str) -> int:
+
     # Parse the input
     keypad = numeric_keypad()
     direction_keypad1 = directional_keypad()
@@ -251,39 +199,69 @@ def solve(input_string: str) -> int:
 
     # Parse the input
     for line in input_string.split("\n"):
-        move_from_char = 'A'
-        sequence = ''
-        sequence2 = ''
-        sequence3 = ''
-        int_portion = int(re.findall(r"\d+", line)[0])
-        if line == '379A':
-            print("Line:", line, "Int portion:", int_portion)
+        sequence_builder = ""
+        sequence2_builder = ""
+        sequence3_builder = ""
+        # Parse the position and velocity
+        for char in line:
+            sequence = keypad.move(char)
+            sequence_builder += sequence
+            debug_print(f"Char: {char}, Sequence: {sequence} Sequence_builder: {sequence_builder}")
+            for direction1 in sequence:
+                sequence2 = direction_keypad1.move(direction1)
+                sequence2_builder += sequence2
+                debug_print(f"Direction: {direction1}, Sequence2: {sequence2}, Sequence2_builder: {sequence2_builder}")
+                for direction2 in sequence2:
+                    sequence3 = direction_keypad2.move(direction2)
+                    sequence3_builder += sequence3
+                    debug_print(f"Direction2: {direction2}, Sequence3: {sequence3}, Sequence3_builder: {sequence3_builder}")
+                    
 
-        for move_to_char in line:
-            sequence += keypad.clear_text_path[move_from_char + move_to_char]
-            move_from_char = move_to_char
+        # Number equals line with last char dropped
+        number = int(line[:-1])
 
-        print("Sequence:", sequence, "for line:", line, "length", len(sequence))
+        result_dict = {}
+        result_dict['029A'] = '<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A'
+        result_dict['980A'] = '<v<A>>^AAAvA^A<vA<AA>>^AvAA<^A>A<v<A>A>^AAAvA<^A>A<vA>^A<A>A'
+        result_dict['179A'] = '<v<A>>^A<vA<A>>^AAvAA<^A>A<v<A>>^AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A'
+        result_dict['456A'] = '<v<A>>^AA<vA<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^A<A>A<v<A>A>^AAvA<^A>A'
+        result_dict['379A'] = '<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A'
+        print("Line", line, "Sequence", sequence3_builder, "number * length", len(sequence3_builder), '*', number)
+        print("Line", line, "Sequence", result_dict[line], "number * length", len(result_dict[line]), '*', number)
+        direction_keypad1.reset()
+        direction_keypad2.reset()
+        keypad.reset()
 
-        move_from_char = 'A'
+        sim = sequence3_builder
+        sim_keypad2 = direction_keypad2.simulate(sim)
+        sim_keypad1 = direction_keypad1.simulate(sim_keypad2)
+        sim_keypad = keypad.simulate(sim_keypad1)
+        direction_keypad1.reset()
+        direction_keypad2.reset()
+        keypad.reset()
+        sim_ex = result_dict[line]
+        sim_ex_keypad2 = direction_keypad2.simulate(sim_ex)
+        sim_ex_keypad1 = direction_keypad1.simulate(sim_ex_keypad2)
+        sim_ex_keypad = keypad.simulate(sim_ex_keypad1)
 
-        for move_to_char in sequence:
-            sequence2 += direction_keypad1.shortest_paths_dict_directional[move_from_char + move_to_char]
-            move_from_char = move_to_char
+        print('number sim:', sim_keypad, sim_ex_keypad, sim_keypad == sim_ex_keypad)
+        print
+        result += len(sequence3_builder)*number 
 
-        print("Sequence:", sequence2, "for line:", line, "length", len(sequence2))
+    sim = '<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A'
+    sim_keypad2 = direction_keypad2.simulate(sim)
+    sim_keypad1 = direction_keypad1.simulate(sim_keypad2)
+    sim_keypad = keypad.simulate(sim_keypad1)
+    print('Short sim:', sim_keypad, 'sim_keypad1:', sim_keypad1, 'sim_keypad2:', sim_keypad2, 'sim:', sim)
+    sim_ex = 'DLLARRUADAUADLLARRUAADLALARRUAADAAULARADLARUAALARADLALARRUAAADAULARA'
+    direction_keypad1.reset()
+    direction_keypad2.reset()
+    keypad.reset()
+    sim_ex_keypad2 = direction_keypad2.simulate(sim_ex)
+    sim_ex_keypad1 = direction_keypad1.simulate(sim_ex_keypad2)
+    sim_ex_keypad = keypad.simulate(sim_ex_keypad1)
+    print('Short exs:', sim_ex_keypad, 'sim_keypad1:', sim_ex_keypad1, 'sim_keypad2:', sim_ex_keypad2, 'sim:', sim_ex) 
 
-        move_from_char = 'A'
-        for move_to_char in sequence2:
-            sequence3 += direction_keypad2.shortest_paths_dict_directional[move_from_char + move_to_char]
-            move_from_char = move_to_char
-
-        result += int_portion*len(sequence3)
-        print("Sequence:", sequence3, "for line:", line, "length", len(sequence3))
-
-
-    print('Simulation:', simulate_all('<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A', keypad, direction_keypad1))
-    print('Simulation:', simulate_all('DLALAARRUADAAULARADLLARRUADAUADLALARRUADAAULARADLLARRUADAUAADAUAADAUA', keypad, direction_keypad2))
     return result
 
 # Test the example
