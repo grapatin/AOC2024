@@ -3,15 +3,12 @@ import requests
 from datetime import datetime
 
 def fetch_advent_input(day: int = None) -> str:
-    # Get the current date
-    current_date = datetime.now()
-
     # Determine the day of December to fetch
     #day = current_date.day if 1 <= current_date.day <= 25 and current_date.month == 12 else 1
 
     # Define the URL to fetch
     url = f'https://adventofcode.com/2024/day/{day}/input'
-    output_file = f'202412{day:02d}_input.txt'
+    output_file = f'202412{day}_input.txt'
 
     # Check if the output file already exists
     if os.path.exists(output_file):
