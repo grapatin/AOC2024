@@ -63,13 +63,10 @@ def solve(input_string: str, limit) -> int:
             new_x = x + dx
             new_y = y + dy
             new_pos = (new_x, new_y)
-
             if new_pos in visited:
                 continue
-
             if map_dict.get(new_pos) == "#":
                 continue
-
             queue.append((new_pos, current_steps + 1))
             visited[new_pos] = current_steps + 1
             visited_list.append(new_pos)
